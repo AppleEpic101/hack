@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import './App.css'
+import WaveformVisualizer from './components/WaveformVisualizer'
 
 const formatTime = (timeInSeconds) => {
   const minutes = Math.floor(timeInSeconds / 60);
@@ -16,6 +17,7 @@ function App() {
   const [progress, setProgress] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [audioStream, setAudioStream] = useState(null)
   
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
@@ -50,7 +52,10 @@ function App() {
 
   const startRecording = async () => {
     try {
+      console.log('Starting recording...');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      console.log('Got audio stream:', stream);
+      setAudioStream(stream)
       mediaRecorderRef.current = new MediaRecorder(stream)
       chunksRef.current = []
 
@@ -90,6 +95,7 @@ function App() {
       mediaRecorderRef.current.stop()
       mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop())
       setIsRecording(false)
+      setAudioStream(null)
     }
   }
 
@@ -111,7 +117,10 @@ function App() {
       <main className="main-content">
         <div className="recording-section">
           <div className="recording-visualizer">
-            {/* Waveform visualization will go here */}
+            <WaveformVisualizer 
+              audioStream={audioStream} 
+              isRecording={isRecording}
+            />
           </div>
           
           <button 
