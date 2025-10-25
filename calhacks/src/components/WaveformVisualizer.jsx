@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-const WaveformVisualizer = ({ audioStream, isRecording }) => {
+const WaveformVisualizer = ({ audioStream, isRecording, audioElement, isPlaying }) => {
   const canvasRef = useRef(null);
   const animationRef = useRef(null);
   const audioContextRef = useRef(null);
@@ -9,35 +9,64 @@ const WaveformVisualizer = ({ audioStream, isRecording }) => {
   const previousDataRef = useRef(new Float32Array(1024).fill(0));
   const smoothingFactor = 0.75; // Adjust this value between 0 and 1 (higher = longer persistence)
 
+  // Persist playback context/analyser/source for the same audioElement
   useEffect(() => {
-    console.log('WaveformVisualizer effect:', { audioStream, isRecording });
-    if (!audioStream) return;
+    let usingPlayback = false;
+    let bufferLength, dataArray;
 
-    console.log('Setting up audio context and analyzer');
-
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const analyser = audioContext.createAnalyser();
-    const source = audioContext.createMediaStreamSource(audioStream);
-    
-    analyser.fftSize = 2048;
-    source.connect(analyser);
-    
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
-    
-    audioContextRef.current = audioContext;
-    analyserRef.current = analyser;
-    dataArrayRef.current = dataArray;
+    // For playback: only create context/source/analyser once per audioElement
+    if (audioElement && !isRecording) {
+      usingPlayback = true;
+      if (!audioContextRef.current || audioContextRef.current._element !== audioElement) {
+        // Clean up previous context if audioElement changed
+        if (audioContextRef.current && audioContextRef.current.close) {
+          audioContextRef.current.close();
+        }
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaElementSource(audioElement);
+        analyser.fftSize = 2048;
+        source.connect(analyser);
+        analyser.connect(audioContext.destination);
+        bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+        audioContext._element = audioElement; // custom property to track element
+        audioContextRef.current = audioContext;
+        analyserRef.current = analyser;
+        dataArrayRef.current = dataArray;
+      } else {
+        // Reuse existing
+        bufferLength = analyserRef.current.frequencyBinCount;
+        dataArray = dataArrayRef.current;
+      }
+    } else if (isRecording && audioStream) {
+      // For recording: always create new context
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const analyser = audioContext.createAnalyser();
+      const source = audioContext.createMediaStreamSource(audioStream);
+      analyser.fftSize = 2048;
+      source.connect(analyser);
+      bufferLength = analyser.frequencyBinCount;
+      dataArray = new Uint8Array(bufferLength);
+      audioContextRef.current = audioContext;
+      analyserRef.current = analyser;
+      dataArrayRef.current = dataArray;
+      usingPlayback = false;
+    } else {
+      return;
+    }
 
     const draw = () => {
-      if (!canvasRef.current || !isRecording) return;
+      if (!canvasRef.current) return;
+      if (usingPlayback && !(audioElement && isPlaying && !audioElement.paused)) return;
+      if (!usingPlayback && !isRecording) return;
 
       const canvas = canvasRef.current;
       const canvasCtx = canvas.getContext('2d');
       const width = canvas.width;
       const height = canvas.height;
 
-      analyser.getByteTimeDomainData(dataArray);
+      analyserRef.current.getByteTimeDomainData(dataArrayRef.current);
 
       // Clear canvas with gradient
       const gradient = canvasCtx.createLinearGradient(0, 0, 0, height);
@@ -48,7 +77,7 @@ const WaveformVisualizer = ({ audioStream, isRecording }) => {
 
       // Apply smoothing
       for (let i = 0; i < bufferLength; i++) {
-        const currentValue = dataArray[i] / 128.0;
+        const currentValue = dataArrayRef.current[i] / 128.0;
         previousDataRef.current[i] = previousDataRef.current[i] * smoothingFactor + 
                                    currentValue * (1 - smoothingFactor);
       }
@@ -104,12 +133,14 @@ const WaveformVisualizer = ({ audioStream, isRecording }) => {
 
       canvasCtx.stroke();
 
-      if (isRecording) {
+      // Continue animation if still playing/recording
+      if ((usingPlayback && audioElement && isPlaying && !audioElement.paused) || (!usingPlayback && isRecording)) {
         animationRef.current = requestAnimationFrame(draw);
       }
     };
 
-    if (isRecording) {
+    // Start animation
+    if ((usingPlayback && audioElement && isPlaying && !audioElement.paused) || (!usingPlayback && isRecording)) {
       draw();
     }
 
@@ -117,11 +148,23 @@ const WaveformVisualizer = ({ audioStream, isRecording }) => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
-      if (audioContextRef.current) {
+      // Only clean up playback context if audioElement changes or component unmounts
+      if (!isRecording && audioContextRef.current && audioContextRef.current._element !== audioElement) {
         audioContextRef.current.close();
+        audioContextRef.current = null;
+        analyserRef.current = null;
+        dataArrayRef.current = null;
+      }
+      // Always clean up recording context
+      if (isRecording && audioContextRef.current) {
+        audioContextRef.current.close();
+        audioContextRef.current = null;
+        analyserRef.current = null;
+        dataArrayRef.current = null;
       }
     };
-  }, [audioStream, isRecording]);
+    // eslint-disable-next-line
+  }, [audioStream, isRecording, audioElement, isPlaying]);
 
   useEffect(() => {
     // Resize canvas to match container size

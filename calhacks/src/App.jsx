@@ -18,10 +18,11 @@ function App() {
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [audioStream, setAudioStream] = useState(null)
-  
+
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
   const timerRef = useRef(null)
+  const audioElementRef = useRef(null)
 
   useEffect(() => {
     if (isRecording) {
@@ -118,8 +119,10 @@ function App() {
         <div className="recording-section">
           <div className="recording-visualizer">
             <WaveformVisualizer 
-              audioStream={audioStream} 
+              audioStream={audioStream}
               isRecording={isRecording}
+              audioElement={audioElementRef.current}
+              isPlaying={isPlaying}
             />
           </div>
           
@@ -132,7 +135,7 @@ function App() {
           
           <div className="instructions">
             {!isRecording ? (
-              <p>Click the button and say "ahhh" for 30 seconds</p>
+              <p>Click the button and speak for 30 seconds</p>
             ) : (
               <div>
                 <p>Recording... Keep saying "ahhh"</p>
@@ -183,7 +186,8 @@ function App() {
               </div>
               
               <audio 
-                id="recording-audio" 
+                id="recording-audio"
+                ref={audioElementRef}
                 src={recordingUrl}
                 onTimeUpdate={(e) => {
                   setCurrentTime(e.target.currentTime);
@@ -192,6 +196,8 @@ function App() {
                 onLoadedMetadata={(e) => {
                   setDuration(e.target.duration);
                 }}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
                 onEnded={() => {
                   setIsPlaying(false);
                   setProgress(0);

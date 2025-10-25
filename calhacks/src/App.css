@@ -45,14 +45,31 @@
   text-align: center;
 }
 
+
 .recording-visualizer {
   height: 200px;
   width: 100%;
+  min-width: 350px;
+  max-width: 600px;
   background: #f8f9fa;
   border-radius: 12px;
   margin-bottom: 2rem;
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.waveform-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 350px;
+  max-width: 600px;
+  border-radius: 12px;
+  display: block;
 }
 
 .waveform-canvas {
