@@ -120,9 +120,11 @@ function App() {
   return (
     <div className="app-container">
       <header className="app-header">
-        <h1>ParkiSense</h1>
-        <p className="subtitle">AI Voice Analysis for Early Parkinson's Detection</p>
-        <nav style={{ marginTop: '1.5rem' }}>
+        <div className="header-left">
+          <h1 className="header-title">ParkiSense</h1>
+          <p className="subtitle">AI Voice Analysis for Early Parkinson's Detection</p>
+        </div>
+        <nav className="header-nav" style={{ marginTop: 0 }}>
           <button
             className={`record-button ${view === 'main' ? 'active' : ''}`}
             style={{ marginRight: 12 }}

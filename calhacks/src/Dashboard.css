@@ -36,3 +36,21 @@
   color: var(--text-secondary);
   font-style: italic;
 }
+
+.confidence-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.confidence-circle {
+  width: 64px;
+  height: 64px;
+}
+.confidence-circle svg {
+  display: block;
+}
+.confidence-text {
+  fill: var(--text-main);
+  font-weight: 700;
+  font-size: 12px;
+}
