@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import './App.css'
+import logo from './assets/logo.png'
 import WaveformVisualizer from './components/WaveformVisualizer'
 import Dashboard from './components/Dashboard'
 import './Dashboard.css'
@@ -21,7 +22,7 @@ function App() {
   const [duration, setDuration] = useState(0)
   const [audioStream, setAudioStream] = useState(null)
   const [dashboardEntries, setDashboardEntries] = useState([])
-  const [view, setView] = useState('main') // 'main' or 'dashboard'
+  const [view, setView] = useState('main') 
 
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
@@ -121,7 +122,10 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <div className="header-left">
-          <h1 className="header-title">ParkiSense</h1>
+          <div className="brand">
+            <img src={logo} alt="ParkinSense logo" className="app-logo" />
+            <h1 className="header-title">ParkiSense</h1>
+          </div>
           <p className="subtitle">AI Voice Analysis for Early Parkinson's Detection</p>
         </div>
         <nav className="header-nav" style={{ marginTop: 0 }}>
@@ -140,7 +144,40 @@ function App() {
         {view === 'dashboard' ? (
           <Dashboard entries={dashboardEntries} />
         ) : (
-          <div className="recording-section">
+          <>
+            {/* Hero section */}
+            <section className="hero">
+              <h2 className="hero-title">Speech Analysis for Early Parkinson's Detection</h2>
+              <p className="hero-subtitle">
+                ParkiSense helps screen for vocal markers linked to Parkinson's—fast, private, and simple.
+                Record a short sustained vowel sound and explore an example dashboard.
+              </p>
+            </section>
+
+            {/* Features summary */}
+            <section className="features-grid" aria-label="Key benefits">
+              <div className="feature-card">
+                <div className="feature-emoji" aria-hidden>🎙️</div>
+                <h3>30-second test</h3>
+                <p>Hold an “ahhh” for half a minute—our visualizer and analyzer handle the rest.</p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-emoji" aria-hidden>🔒</div>
+                <h3>Private by design</h3>
+                <p>Audio stays in your browser for the demo. Download your recording if you want.</p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-emoji" aria-hidden>📊</div>
+                <h3>Actionable insights</h3>
+                <p>See confidence indicators inspired by published research—clear and interpretable.</p>
+              </div>
+            </section>
+
+            {/* Demo anchor */}
+            <section id="demo" className="demo-section" aria-label="Voice demo">
+              <h3 className="section-title">Try the demo</h3>
+              <p className="section-subtitle">Click start, sustain “ahhh,” and watch the waveform. The timer will stop automatically at 30 seconds.</p>
+              <div className="recording-section">
             <div className="recording-visualizer">
               <WaveformVisualizer 
                 audioStream={audioStream}
@@ -234,7 +271,9 @@ function App() {
                 </div>
               </div>
             )}
-          </div>
+              </div>
+            </section>
+          </>
         )}
         {analysisResult && (
           <div className="results-section">
