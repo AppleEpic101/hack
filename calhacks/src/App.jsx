@@ -104,14 +104,34 @@ function App() {
     }
   }
 
+  useEffect(() => {
+    const handleHash = () => {
+      // Normalize hash (remove leading # and /)
+      let h = window.location.hash.replace(/^#\/?/, '');
+      if (h === 'dashboard') setView('dashboard');
+      else setView('main');
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
   return (
     <div className="app-container">
       <header className="app-header">
         <h1>ParkiSense</h1>
         <p className="subtitle">AI Voice Analysis for Early Parkinson's Detection</p>
         <nav style={{ marginTop: '1.5rem' }}>
-          <button className="record-button" style={{ marginRight: 12 }} onClick={() => setView('main')}>Main</button>
-          <button className="record-button" onClick={() => setView('dashboard')}>Dashboard</button>
+          <button
+            className={`record-button ${view === 'main' ? 'active' : ''}`}
+            style={{ marginRight: 12 }}
+            onClick={() => { window.location.hash = '/'; }}
+          >Main</button>
+          <button
+            className={`record-button ${view === 'dashboard' ? 'active' : ''}`}
+            onClick={() => { window.location.hash = '/dashboard'; }}
+          >Dashboard</button>
         </nav>
       </header>
       <main className="main-content">
