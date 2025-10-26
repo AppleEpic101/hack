@@ -68,7 +68,10 @@ const Dashboard = ({ entries }) => {
           <tr>
             <th>Minute</th>
             <th>Transcript</th>
-            <th style={{ width: 140 }}>Parkinson's Confidence</th>
+            <th style={{ width: 120 }}>Slur</th>
+            <th style={{ width: 120 }}>Parkinson</th>
+            <th style={{ width: 120 }}>Emotion</th>
+            <th style={{ width: 120 }}>Coherence</th>
           </tr>
         </thead>
         <tbody>
@@ -77,9 +80,36 @@ const Dashboard = ({ entries }) => {
               <td>{entry.minuteLabel || `Minute ${idx + 1}`}</td>
               <td>{entry.transcript || <span className="placeholder">Processing...</span>}</td>
               <td>
-                {entry.confidence !== undefined ? (
+                {entry.slur !== undefined ? (
                   <div className="confidence-cell">
-                    <SegmentedCircle value={entry.confidence} size={64} segments={10} stroke={8} gapDeg={6} />
+                    <SegmentedCircle value={entry.slur} size={48} segments={10} stroke={7} gapDeg={6} />
+                  </div>
+                ) : (
+                  <span className="placeholder">-</span>
+                )}
+              </td>
+              <td>
+                {entry.parkinsen !== undefined ? (
+                  <div className="confidence-cell">
+                    <SegmentedCircle value={entry.parkinsen} size={48} segments={10} stroke={7} gapDeg={6} />
+                  </div>
+                ) : (
+                  <span className="placeholder">-</span>
+                )}
+              </td>
+              <td>
+                {entry.emotion !== undefined ? (
+                  <div className="confidence-cell">
+                    <SegmentedCircle value={entry.emotion} size={48} segments={10} stroke={7} gapDeg={6} />
+                  </div>
+                ) : (
+                  <span className="placeholder">-</span>
+                )}
+              </td>
+              <td>
+                {entry.coherence !== undefined ? (
+                  <div className="confidence-cell">
+                    <SegmentedCircle value={entry.coherence} size={48} segments={10} stroke={7} gapDeg={6} />
                   </div>
                 ) : (
                   <span className="placeholder">-</span>
@@ -90,7 +120,7 @@ const Dashboard = ({ entries }) => {
         </tbody>
       </table>
       <p style={{ marginTop: 12, color: 'var(--text-secondary)', fontSize: 13 }}>
-        The segmented circle shows an estimated confidence that the audio contains Parkinson's-related markers. Higher = more likely.
+        Each metric is visualized as a segmented circle (0-100%). Higher = more likely for that metric.
       </p>
     </div>
   );
